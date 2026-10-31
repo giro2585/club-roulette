@@ -122,7 +122,7 @@ function renderAuth(mode = 'login') {
   $('#app').innerHTML = `
   <section class="auth">
     <div class="auth-hero">
-      <div class="art">${icon('coin')}</div>
+      <img class="brand-logo" src="/logo.png" alt="Кальян Клаб">
       <div class="logo-word">клаб<br>рулетка</div>
     </div>
     <form class="auth-form" id="auth-form" novalidate>
@@ -206,7 +206,7 @@ async function renderRoulette() {
   $('#app').innerHTML = `
   <section class="roulette silver">
     <div class="topbar">
-      <button class="round-btn" data-go="profile" aria-label="Кабинет">${UI.user}</button>
+      <img class="brand-mini" src="/logo.png" alt="Кальян Клаб" data-go="">
       ${balanceEl()}
       <button class="round-btn" id="daily-open" aria-label="Награда за вход">${UI.clock}</button>
     </div>

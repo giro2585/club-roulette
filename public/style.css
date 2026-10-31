@@ -364,3 +364,7 @@ table.tbl { border-collapse: collapse; width: 100%; font-size: 14px; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
 }
 .stats div b span { display: inline; font-size: inherit; color: inherit; font-weight: inherit; }
+/* логотип */
+.brand-logo { display: block; width: 168px; height: auto; animation: float 5s ease-in-out infinite; }
+.brand-mini { display: block; height: 40px; width: auto; cursor: pointer; transition: transform .2s var(--ease); }
+.brand-mini:active { transform: scale(.95); }
