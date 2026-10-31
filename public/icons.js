@@ -3,22 +3,22 @@ const DEFS = `
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
     <linearGradient id="gLime" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffe680"/><stop offset=".45" stop-color="#fecc00"/><stop offset="1" stop-color="#cc9a00"/>
+      <stop offset="0" stop-color="#ffd633"/><stop offset="1" stop-color="#fec400"/>
     </linearGradient>
     <linearGradient id="gLimeDark" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#e8b400"/><stop offset="1" stop-color="#a37400"/>
+      <stop offset="0" stop-color="#f0b800"/><stop offset="1" stop-color="#e0a800"/>
     </linearGradient>
     <linearGradient id="gSilver" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#ffffff"/><stop offset=".35" stop-color="#dfe1e6"/><stop offset=".7" stop-color="#9da1ab"/><stop offset="1" stop-color="#e8e9ed"/>
+      <stop offset="0" stop-color="#f4f4f6"/><stop offset="1" stop-color="#dcdde1"/>
     </linearGradient>
     <linearGradient id="gSilverDark" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#a7abb5"/><stop offset="1" stop-color="#5f636c"/>
+      <stop offset="0" stop-color="#c9cbd0"/><stop offset="1" stop-color="#b5b7bd"/>
     </linearGradient>
     <linearGradient id="gInk" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#4a4d55"/><stop offset="1" stop-color="#121316"/>
+      <stop offset="0" stop-color="#2a2c31"/><stop offset="1" stop-color="#111214"/>
     </linearGradient>
     <radialGradient id="gShine" cx=".3" cy=".25" r=".6">
-      <stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="0" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#fff" stop-opacity="0"/>
     </radialGradient>
   </defs>
 </svg>`;
@@ -41,8 +41,8 @@ const ICONS = {
       <path d="M10 30 h80 v14 a6 6 0 0 0 0 12 v14 h-80 v-14 a6 6 0 0 0 0 -12z" fill="url(#gLimeDark)" transform="translate(2 3)"/>
       <path d="M10 30 h80 v14 a6 6 0 0 0 0 12 v14 h-80 v-14 a6 6 0 0 0 0 -12z" fill="url(#gLime)"/>
       <line x1="70" y1="33" x2="70" y2="67" stroke="#b88600" stroke-width="2" stroke-dasharray="3 3"/>
-      <text x="40" y="47" font-family="Unbounded, sans-serif" font-weight="800" font-size="11" text-anchor="middle" fill="#111">PROMO</text>
-      <text x="40" y="60" font-family="Unbounded, sans-serif" font-weight="800" font-size="11" text-anchor="middle" fill="#111">CODE</text>
+      <text x="40" y="47" font-family="Manrope, sans-serif" font-weight="800" font-size="11" text-anchor="middle" fill="#111">PROMO</text>
+      <text x="40" y="60" font-family="Manrope, sans-serif" font-weight="800" font-size="11" text-anchor="middle" fill="#111">CODE</text>
     </g>` + mark(84, 18, 9, 'url(#gSilver)') + mark(18, 84, 6, 'url(#gSilver)'),
   percent: () => `
     <circle cx="52" cy="54" r="34" fill="url(#gLimeDark)"/><circle cx="50" cy="50" r="34" fill="url(#gLime)"/>
@@ -97,7 +97,7 @@ const ICONS = {
       <rect x="12" y="26" width="76" height="48" rx="8" fill="url(#gSilverDark)" transform="translate(2 3)"/>
       <rect x="12" y="26" width="76" height="48" rx="8" fill="url(#gSilver)"/>
       <rect x="12" y="36" width="76" height="9" fill="url(#gLime)"/>
-      <text x="80" y="66" font-family="Unbounded, sans-serif" font-weight="800" font-size="12" text-anchor="end" fill="#111">1000 ₽</text>
+      <text x="80" y="66" font-family="Manrope, sans-serif" font-weight="800" font-size="12" text-anchor="end" fill="#111">1000 ₽</text>
     </g>`,
 };
 

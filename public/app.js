@@ -45,7 +45,24 @@ const UI = {
 };
 
 const balanceEl = (chip = false) => `<span class="balance ${chip ? 'chip' : ''}" data-balance>${coinMini()}<span>${fmt(S.me?.balance ?? 0)}</span></span>`;
-function refreshBalance(value = S.me?.balance) { document.querySelectorAll('[data-balance] span').forEach((el) => (el.textContent = fmt(value))); }
+// баланс плавно «докручивается» до нового значения
+function refreshBalance(value = S.me?.balance) {
+  document.querySelectorAll('[data-balance]').forEach((box) => {
+    const el = box.querySelector('span:last-child') || box.querySelector('span');
+    const from = Number(String(el.textContent).replace(/\D/g, '')) || 0;
+    if (from === value || REDUCED) { el.textContent = fmt(value); return; }
+    box.classList.remove('bump'); void box.offsetWidth; box.classList.add('bump');
+    const t0 = performance.now(), dur = 600;
+    const tick = (now) => {
+      const t = Math.min(1, (now - t0) / dur);
+      el.textContent = fmt(Math.round(from + (value - from) * (1 - Math.pow(1 - t, 3))));
+      if (t < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ---------- навигация ----------
 const NAV = [
@@ -60,19 +77,42 @@ function renderNav(cur) {
 const go = (h) => { location.hash = '#/' + h; };
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) { e.preventDefault(); go(b.dataset.go); } });
 
+// порядок страниц задаёт направление анимации перехода
+const ORDER = ['', 'tasks', 'shop', 'prizes', 'rating', 'profile', 'admin'];
+let lastPage = null, routeSeq = 0;
+async function animateTo(page, render) {
+  const app = $('#app');
+  const seq = ++routeSeq;
+  const a = ORDER.indexOf(page), b = ORDER.indexOf(lastPage);
+  const dir = lastPage === null || a < 0 || b < 0 || a === b ? 0 : Math.sign(a - b);
+  const setShift = (k) => {
+    app.style.setProperty('--dx', dir ? k * dir * 28 + 'px' : '0px');
+    app.style.setProperty('--dy', dir ? '0px' : '10px');
+  };
+  if (!REDUCED && app.firstElementChild && lastPage !== null) {
+    setShift(-1); app.classList.remove('entering'); app.classList.add('leaving');
+    await sleep(140);
+    if (seq !== routeSeq) return;
+  }
+  lastPage = page;
+  app.classList.remove('leaving', 'entering');
+  window.scrollTo(0, 0);
+  render();
+  setShift(1); void app.offsetWidth; app.classList.add('entering');
+}
+
 async function route() {
   const page = location.hash.replace(/^#\/?/, '').split('?')[0];
   const app = $('#app');
-  app.classList.toggle('wide', page === 'admin');
-  if (!S.token) { renderNav(); return renderAuth(); }
+  if (!S.token) { renderNav(); return animateTo('auth', () => { app.classList.remove('wide'); renderAuth(); }); }
   if (!S.me) {
     try { S.me = await api('/me'); } catch { return; }
   }
-  renderNav(page);
-  $('#sheet-root').innerHTML = '';
-  window.scrollTo(0, 0);
+  closeSheet(true);
   const pages = { '': renderRoulette, tasks: renderTasks, shop: renderShop, prizes: renderPrizes, rating: renderRating, profile: renderProfile, admin: renderAdmin };
-  (pages[page] || renderRoulette)();
+  const key = pages[page] ? page : '';
+  renderNav(key);
+  animateTo(key, () => { app.classList.toggle('wide', key === 'admin'); pages[key](); });
 }
 window.addEventListener('hashchange', route);
 
@@ -81,13 +121,12 @@ function renderAuth(mode = 'login') {
   const reg = mode === 'register';
   $('#app').innerHTML = `
   <section class="auth">
-    <div class="auth-hero silver">
-      ${sparkle('sp-1')}${sparkle('sp-2')}${sparkle('sp-3')}
+    <div class="auth-hero">
       <div class="art">${icon('coin')}</div>
       <div class="logo-word">клаб<br>рулетка</div>
     </div>
     <form class="auth-form" id="auth-form" novalidate>
-      <h2 class="h-display" style="font-size:30px;margin-bottom:6px">${reg ? 'регистрация' : 'вход'}</h2>
+      <h2 class="h-display" style="margin-bottom:4px">${reg ? 'регистрация' : 'вход'}</h2>
       <p class="hint">${reg ? `Создайте аккаунт и получите приветственный бонус в ${esc(S.config.currency)} на первые спины.` : 'Войдите, чтобы крутить рулетку, копить ККоин и тратить их в магазине.'}</p>
       ${reg ? '<label class="field"><span>Имя</span><input name="name" autocomplete="nickname" maxlength="40" placeholder="Как к вам обращаться"></label>' : ''}
       <label class="field"><span>Логин</span><input name="login" autocomplete="username" required placeholder="например, anna_k"></label>
@@ -110,10 +149,18 @@ function renderAuth(mode = 'login') {
 }
 
 // ---------- шторка ----------
+function closeSheet(instant = false) {
+  const root = $('#sheet-root');
+  const ov = $('#overlay', root);
+  if (!ov) return;
+  if (instant || REDUCED) { root.innerHTML = ''; return; }
+  ov.classList.add('closing');
+  setTimeout(() => { if (ov.isConnected) ov.remove(); }, 220);
+}
 function sheet(html, { onClose } = {}) {
   const root = $('#sheet-root');
   root.innerHTML = `<div class="overlay" id="overlay"><div class="sheet" role="dialog" aria-modal="true"><div class="grab"></div><button class="close" data-close aria-label="Закрыть">${UI.close}</button>${html}</div></div>`;
-  const close = () => { root.innerHTML = ''; onClose && onClose(); };
+  const close = () => { closeSheet(); onClose && onClose(); };
   $('#overlay').addEventListener('click', (e) => { if (e.target.id === 'overlay' || e.target.closest('[data-close]')) close(); });
   return { el: $('.sheet', root), close };
 }
@@ -285,7 +332,7 @@ async function renderTasks() {
   $('#app').innerHTML = `
   <section>
     <div class="page-head silver">
-      <div class="topbar" style="padding:18px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button>${balanceEl(true)}<span style="width:44px"></span></div>
+      <div class="topbar" style="padding:16px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button>${balanceEl(true)}<span style="width:44px"></span></div>
       <div class="art">${icon('coin')}</div><div class="art-2">${icon('heart')}</div>
       <h1 class="h-display">задания</h1>
     </div>
@@ -327,11 +374,10 @@ async function renderTasks() {
 
 // ---------- магазин и призы ----------
 function shopHead(active) {
-  return `<div class="page-head silver" style="min-height:250px">
-      <div class="topbar" style="padding:18px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button>${balanceEl(true)}<span style="width:44px"></span></div>
-      <div class="art" style="top:46px;right:-20px;width:170px;height:170px">${icon('gift')}</div><div class="art-2" style="top:70px;right:150px;width:56px;height:56px">${icon('percent')}</div>
+  return `<div class="page-head">
+      <div class="topbar" style="padding:16px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button>${balanceEl(true)}<span style="width:44px"></span></div>
     </div>
-    <div class="tabs" style="margin-top:-62px"><button data-go="shop" class="${active === 'shop' ? 'on' : ''}">магазин</button><button data-go="prizes" class="${active === 'prizes' ? 'on' : ''}">призы</button></div>`;
+    <div class="tabs" style="margin-top:8px"><button data-go="shop" class="${active === 'shop' ? 'on' : ''}">магазин</button><button data-go="prizes" class="${active === 'prizes' ? 'on' : ''}">призы</button></div>`;
 }
 async function renderShop() {
   $('#app').innerHTML = `<section>${shopHead('shop')}<p class="hint" style="padding:16px 20px 0;margin:0">Обменивайте ${esc(S.config.currency)} на скидки. После покупки вы получите промокод, он сохранится в личном кабинете.</p><div class="grid" id="shop"></div></section>`;
@@ -389,9 +435,9 @@ async function renderPrizes() {
 async function renderRating() {
   $('#app').innerHTML = `<section>
     <div class="page-head silver">
-      <div class="topbar" style="padding:18px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button><span></span></div>
+      <div class="topbar" style="padding:16px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button><span></span></div>
       <div class="art">${icon('cup')}</div>
-      <h1 class="h-display" style="margin-top:40px">рейтинг</h1>
+      <h1 class="h-display">рейтинг</h1>
       <div class="sub" id="period"></div>
     </div>
     <div id="board" style="padding-top:20px"><p class="empty">Загружаем…</p></div>
@@ -416,7 +462,7 @@ async function renderProfile(tab = 'wins') {
   const d = m.daily;
   $('#app').innerHTML = `<section>
     <div class="silver profile-head">
-      <div class="topbar" style="padding:18px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button><span class="id-chip">ID ${m.id}</span><button class="plain-btn" id="logout" aria-label="Выйти">${UI.exit}</button></div>
+      <div class="topbar" style="padding:16px 0 0"><button class="plain-btn" data-go="" aria-label="Назад">${UI.back}</button><span class="id-chip">ID ${m.id}</span><button class="plain-btn" id="logout" aria-label="Выйти">${UI.exit}</button></div>
       <div class="avatar">${esc((m.name || m.login)[0].toUpperCase())}</div>
       <div class="period">${ddmm(m.period.from)} – ${ddmm(m.period.to)}</div>
       <h1 class="h-display">${esc(m.title)}</h1>
