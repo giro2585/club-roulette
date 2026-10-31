@@ -334,7 +334,7 @@ function shopHead(active) {
     <div class="tabs" style="margin-top:-62px"><button data-go="shop" class="${active === 'shop' ? 'on' : ''}">магазин</button><button data-go="prizes" class="${active === 'prizes' ? 'on' : ''}">призы</button></div>`;
 }
 async function renderShop() {
-  $('#app').innerHTML = `<section>${shopHead('shop')}<p class="hint" style="padding:16px 20px 0;margin:0">Тратьте заработанные ${esc(S.config.currency)} на товары и купоны. После покупки вы получите код, его нужно показать при получении.</p><div class="grid" id="shop"></div></section>`;
+  $('#app').innerHTML = `<section>${shopHead('shop')}<p class="hint" style="padding:16px 20px 0;margin:0">Обменивайте ${esc(S.config.currency)} на скидки. После покупки вы получите промокод, он сохранится в личном кабинете.</p><div class="grid" id="shop"></div></section>`;
   let items;
   try { items = await api('/shop'); } catch (e) { return toast(e.message); }
   const box = $('#shop');
@@ -366,7 +366,7 @@ async function renderShop() {
         s.el.innerHTML = `<div class="grab"></div>
           <div class="win-art" style="width:150px;height:150px">${icon(it.icon)}</div>
           <h2 style="margin-top:8px">покупка оформлена!</h2>
-          <p class="lead">Покажите этот код при получении. Заказ сохранён в личном кабинете.</p>
+          <p class="lead">Ваш промокод на скидку. Он сохранён в личном кабинете во вкладке «покупки».</p>
           <div class="win-code"><span class="code">${esc(r.order.code)}</span></div>
           <button class="btn-lime" data-close>отлично</button>`;
         $('#overlay').addEventListener('click', (ev) => { if (ev.target.closest('[data-close]')) renderShop(); });

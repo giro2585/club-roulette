@@ -171,12 +171,12 @@ function seed() {
   }
   if (!db.prepare('SELECT 1 FROM shop_items').get()) {
     const s = db.prepare('INSERT INTO shop_items (title, description, price, stock, icon) VALUES (?,?,?,?,?)');
-    s.run('промокод −10%', 'на любую покупку', 60, 999, 'ticket');
-    s.run('промокод −25%', 'на одну позицию', 150, 200, 'percent');
-    s.run('пробник аромата', 'мини-формат 5 мл', 120, 50, 'perfume');
-    s.run('подарочный набор', 'уход + косметичка', 400, 15, 'gift');
-    s.run('сертификат 1000 ₽', 'электронный сертификат', 800, 10, 'card');
-    s.run('беспроводные наушники', 'ограниченная серия', 3000, 2, 'headphones');
+    s.run('скидка −5%', 'промокод на любую покупку', 30, 999, 'ticket');
+    s.run('скидка −10%', 'промокод на любую покупку', 60, 999, 'ticket');
+    s.run('скидка −15%', 'промокод на любую покупку', 100, 500, 'percent');
+    s.run('скидка −20%', 'промокод на любую покупку', 150, 300, 'percent');
+    s.run('скидка −25%', 'промокод на одну позицию', 220, 200, 'percent');
+    s.run('скидка −30%', 'промокод на одну позицию', 300, 100, 'percent');
   }
   if (!db.prepare('SELECT 1 FROM tasks').get()) {
     const t = db.prepare('INSERT INTO tasks (title, description, type, target, reward, icon, deadline) VALUES (?,?,?,?,?,?,?)');
@@ -372,7 +372,7 @@ app.post('/api/shop/:id/buy', auth, wrap((req) => {
     if (u.balance < item.price) throw new HttpError(400, `Не хватает ККоин: нужно ${item.price}`);
     db.prepare('UPDATE shop_items SET stock = stock - 1 WHERE id = ? AND stock > 0').run(item.id);
     addBalance(req.user.id, -item.price, 'покупка: ' + item.title);
-    const code = genCode('SHOP');
+    const code = genCode('SALE');
     const r = db.prepare('INSERT INTO orders (user_id, item_id, title, price, icon, code) VALUES (?,?,?,?,?,?)')
       .run(req.user.id, item.id, item.title, item.price, item.icon, code);
     return { id: Number(r.lastInsertRowid), title: item.title, code };
